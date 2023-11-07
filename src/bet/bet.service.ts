@@ -32,7 +32,12 @@ export class BetService {
     console.log('betChannel', betChannel);
 
     try {
-      if (betChannel && betChannel.isPublished === false) {
+      if (
+        betChannel &&
+        betChannel.isPublished === false &&
+        new Date() >= betChannel.betStartDate &&
+        new Date() <= betChannel.betEndDate
+      ) {
         await createBetChannel(
           betChannel.betCreatorAddress,
           betChannel.betTitle,
@@ -48,32 +53,15 @@ export class BetService {
       console.log('createBet err', err);
     }
 
-    try {
-      const contractId = Number(bet.betChannelId + '') + 20;
-      await placeBet(bet.bettorAddress, contractId, bet.wager);
-      this.betRepository.save(bet);
-    } catch (err) {
-      console.log('placeBet err1-------', err);
-    }
-
+    const contractId = Number(bet.betChannelId + '') + 20;
+    await placeBet(bet.bettorAddress, contractId, bet.wager);
+    this.betRepository.save(bet);
     return true;
   }
 
   async endBet(endBetDto: EndBetDTO) {
     const contractId = Number(endBetDto.channelId + '') + 20;
-
-    try {
-      await endBet(contractId, endBetDto.winners, endBetDto.amounts);
-      const betChannel = await this.betChannelRepository.findOne({
-        where: {
-          id: endBetDto.channelId,
-        },
-      });
-      betChannel.isActive = false;
-      this.betChannelRepository.update(betChannel.id, betChannel);
-    } catch (err) {
-      console.log('endBetError1-------', err); ///
-    }
+    await endBet(contractId, endBetDto.winners, endBetDto.amounts);
   }
 
   findAll() {

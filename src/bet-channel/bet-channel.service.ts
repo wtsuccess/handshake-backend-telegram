@@ -13,8 +13,7 @@ export class BetChannelService {
     private readonly betChannelRepository: Repository<BetChannel>,
   ) {}
 
-  create(createBetChannelDto: CreateBetChannelDto): Promise<BetChannel> {
-    console.log(createBetChannelDto);
+  create(createBetChannelDto: CreateBetChannelDto) {
     const betChannel = new BetChannel();
     betChannel.betTitle = createBetChannelDto.betTitle;
     betChannel.betCreatorAddress = generateWalletAddress(
@@ -25,15 +24,18 @@ export class BetChannelService {
     betChannel.betStartDate = createBetChannelDto.betStartDate;
     betChannel.betEndDate = createBetChannelDto.betEndDate;
     // betChannel.betLink = betChannel.betTitle + betChannel.betCreatorAddress;
-    return this.betChannelRepository.save(betChannel);
+    this.betChannelRepository.save(betChannel);
+    return true;
   }
 
-  findAll() {
-    return `This action returns all betChannel`;
+  findAll(): Promise<BetChannel[]> {
+    const betChannels = this.betChannelRepository.find();
+    return betChannels;
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} betChannel`;
+    const betChannel = this.betChannelRepository.findOneBy({ id });
+    return betChannel;
   }
 
   update(

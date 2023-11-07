@@ -11,7 +11,6 @@ export class BetChannel {
     unique: true,
     type: 'varchar',
   })
-  
   betTitle: string;
 
   @Column({ type: 'varchar' })
@@ -36,7 +35,7 @@ export class BetChannel {
   // })
   // betLink: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: false })
   isActive: boolean;
 
   @Column({ type: 'boolean', default: false })
@@ -44,7 +43,7 @@ export class BetChannel {
 
   //   @ManyToMany(
   //     () => User,
-  //     (user) => user.bets, //Optional
+  //     (user) => ,user.bets //Optional
   //   )
   //   winners?: User[];
 }
