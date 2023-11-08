@@ -21,7 +21,7 @@ export class CreateBetChannelDto {
   @IsNotEmpty()
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  @MinDate(new Date())
+  // @MinDate(new Date())
   betStartDate: Date;
 
   @IsNotEmpty()

@@ -34,11 +34,13 @@ export class BetService {
         },
       });
 
+      if (new Date() <= betChannel.betStartDate) 
+        throw new BadRequestException('Bet is not started yet.');
+      if (new Date() >= betChannel.betEndDate)
+        throw new BadRequestException('Bet was already ended');
+
       if (
-        betChannel &&
-        !betChannel.isPublished &&
-        // new Date() >= betChannel.betStartDate &&
-        new Date() <= betChannel.betEndDate
+        betChannel && !betChannel.isPublished
       ) {
         createChannelHash = await createBetChannel(
           betChannel.betCreatorAddress,
@@ -53,6 +55,7 @@ export class BetService {
         betChannel.isPublished = true;
         this.betChannelRepository.update(betChannel.id, betChannel);
       }
+
 
       const contractId: number = bet.betChannelId + 23 - 6;
       console.log(contractId);
