@@ -35,8 +35,9 @@ export class BetChannel {
   // })
   // betLink: string;
 
-  // @Column({ type: 'boolean', default: false })
-  // isActive: boolean;
+  @Column({ type: 'boolean', default: false })
+  isActive: boolean;
+  
   @Column({ type: 'boolean', nullable: true })
   realData: boolean;
 

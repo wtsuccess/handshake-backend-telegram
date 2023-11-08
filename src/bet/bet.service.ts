@@ -34,6 +34,8 @@ export class BetService {
         },
       });
 
+      if (betChannel.isPublished && !betChannel.isActive)
+        throw new BadRequestException('Bet could be done only between 2 users');
       if (new Date() <= betChannel.betStartDate) 
         throw new BadRequestException('Bet is not started yet.');
       if (new Date() >= betChannel.betEndDate)
@@ -57,15 +59,16 @@ export class BetService {
       }
 
       const contractId: number = bet.betChannelId + 28 - 2;
-      console.log(contractId);
       const { mintHash, betHash } = await placeBet(
         bet.bettorAddress,
         contractId,
         bet.wager,
       );
+
       if (mintHash === '' || betHash === '')
         throw new BadRequestException('Bet Failed');
       this.betRepository.save(bet);
+      betChannel.isActive = !betChannel.isActive;
       return { createChannelHash, mintHash, betHash };
     } catch (err) {
       console.log("Error occurd: ", err);

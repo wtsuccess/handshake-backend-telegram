@@ -27,14 +27,20 @@ export class BetChannelService {
     return true;
   }
 
-  findAll(): Promise<BetChannel[]> {
-    const betChannels = this.betChannelRepository.find({ 
+  async findAll(): Promise<BetChannel[]> {
+    const betChannels = await this.betChannelRepository.find({ 
       where: {
         betStartDate: LessThan(new Date()),
         betEndDate: MoreThan(new Date()),
       }
      });
-    return betChannels;
+
+     const activeBetChannels = betChannels.filter((betChannel) => {
+      return !betChannel.isActive && !betChannel.isPublished || 
+              betChannel.isActive && betChannel.isPublished;
+    });
+
+    return activeBetChannels;
   }
 
   findOne(id: number): Promise<BetChannel> {
