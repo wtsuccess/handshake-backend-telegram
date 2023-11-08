@@ -34,9 +34,9 @@ export class BetService {
         },
       });
 
-      if (new Date() <= betChannel.betStartDate) 
+      if (new Date() >= betChannel.betStartDate) 
         throw new BadRequestException('Bet is not started yet.');
-      if (new Date() >= betChannel.betEndDate)
+      if (new Date() <= betChannel.betEndDate)
         throw new BadRequestException('Bet was already ended');
 
       if (
