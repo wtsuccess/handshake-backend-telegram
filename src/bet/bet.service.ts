@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateBetDto } from './dto/create-bet.dto';
 import { UpdateBetDto } from './dto/update-bet.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +8,7 @@ import { createBetChannel, endBet, placeBet } from 'src/utils/contracts/escrow';
 import { BetChannel } from 'src/bet-channel/entities/bet-channel.entity';
 import { EndBetDTO } from './dto/end-bet.dto';
 import { generateWalletAddress } from 'src/utils/helper';
-
+import { CreateBet } from './@types/createBetChannel';
 @Injectable()
 export class BetService {
   constructor(
@@ -18,50 +18,62 @@ export class BetService {
     private readonly betChannelRepository: Repository<BetChannel>,
   ) {}
 
-  async create(createBetDto: CreateBetDto) {
+  async create(createBetDto: CreateBetDto): Promise<CreateBet> {
+    let createChannelHash = '';
+
     const bet = new Bet();
     bet.bettorAddress = generateWalletAddress(createBetDto.userName);
-    bet.betChannelId = createBetDto.betChannelId;
+    bet.betChannelId = Number(createBetDto.betChannelId);
     bet.wager = createBetDto.wager;
+    bet.option = createBetDto.option;
 
     const betChannel = await this.betChannelRepository.findOne({
       where: {
         id: bet.betChannelId,
       },
     });
-    console.log('betChannel', betChannel);
 
-    try {
-      if (
-        betChannel &&
-        betChannel.isPublished === false &&
-        new Date() >= betChannel.betStartDate &&
-        new Date() <= betChannel.betEndDate
-      ) {
-        await createBetChannel(
-          betChannel.betCreatorAddress,
-          betChannel.betTitle,
-          betChannel.betDesc,
-          betChannel.betStartDate,
-          betChannel.betEndDate,
-          betChannel.minimumBetAmount,
-        );
-        betChannel.isPublished = true;
-        this.betChannelRepository.update(betChannel.id, betChannel);
-      }
-    } catch (err) {
-      console.log('createBet err', err);
+    if (
+      betChannel &&
+      !betChannel.isPublished &&
+      // new Date() >= betChannel.betStartDate &&
+      new Date() <= betChannel.betEndDate
+    ) {
+      createChannelHash = await createBetChannel(
+        betChannel.betCreatorAddress,
+        betChannel.betTitle,
+        betChannel.betDesc,
+        betChannel.betStartDate,
+        betChannel.betEndDate,
+        betChannel.minimumBetAmount,
+      );
+      if (createChannelHash == '')
+        throw new BadRequestException('Channel Creation Failed');
+      betChannel.isPublished = true;
+      this.betChannelRepository.update(betChannel.id, betChannel);
     }
 
-    const contractId = Number(bet.betChannelId + '') + 20;
-    await placeBet(bet.bettorAddress, contractId, bet.wager);
+    const contractId: number = bet.betChannelId + 23 - 6;
+    console.log(contractId);
+    const { mintHash, betHash } = await placeBet(
+      bet.bettorAddress,
+      contractId,
+      bet.wager,
+    );
+    if (mintHash === '' || betHash === '')
+      throw new BadRequestException('Bet Failed');
     this.betRepository.save(bet);
-    return true;
+    return { createChannelHash, mintHash, betHash };
   }
 
-  async endBet(endBetDto: EndBetDTO) {
-    const contractId = Number(endBetDto.channelId + '') + 20;
-    await endBet(contractId, endBetDto.winners, endBetDto.amounts);
+  async endBet(endBetDto: EndBetDTO): Promise<string> {
+    const contractId: number = Number(endBetDto.channelId) + 23 - 6;
+    const res: string = await endBet(
+      contractId,
+      endBetDto.winners,
+      endBetDto.amounts,
+    );
+    return res;
   }
 
   findAll() {

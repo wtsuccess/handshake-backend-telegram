@@ -9,4 +9,7 @@ export class CreateBetDto {
 
   @IsNotEmpty()
   wager: number;
+
+  @IsNotEmpty()
+  option: boolean;
 }

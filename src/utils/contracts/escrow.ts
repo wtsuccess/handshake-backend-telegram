@@ -3,12 +3,12 @@ import { escrowAddress, tokenAddress } from 'src/constants/basic';
 import { Escrow__factory, Token__factory } from 'src/types';
 
 import * as dotenv from 'dotenv';
+import { PlaceBet } from 'src/bet/@types/createBetChannel';
+
 dotenv.config();
 const { PRIVATE_KEY, NODE_URL } = process.env;
-
 const provider = new ethers.providers.JsonRpcProvider(NODE_URL);
 const signer = new ethers.Wallet(PRIVATE_KEY, provider);
-
 const escrow = Escrow__factory.connect(escrowAddress, signer);
 const token = Token__factory.connect(tokenAddress, signer);
 
@@ -19,9 +19,10 @@ export const createBetChannel = async (
   startTime: Date,
   endTime: Date,
   minBetAmount: number,
-) => {
+): Promise<string> => {
+  let betChannelHash = '';
   try {
-    const tx = await escrow.createBetChannel(
+    const betChannelTx = await escrow.createBetChannel(
       betCreatorAddress,
       betTitle,
       betDesc,
@@ -29,59 +30,86 @@ export const createBetChannel = async (
       Math.floor(new Date(endTime).getTime() / 1000),
       ethers.utils.parseEther(minBetAmount + ''),
     );
-    await tx.wait();
+    const betChannelRes = await betChannelTx.wait();
+    betChannelHash = betChannelRes.transactionHash;
+    console.log('betChannelHash', betChannelHash);
   } catch (err) {
-    console.log('createChannel error----', err);
+    console.error('createChannel error', err);
   }
+
+  return betChannelHash;
 };
 
 export const placeBet = async (
   userAddress: string,
   channelId: number,
   wager: number,
-) => {
+): Promise<PlaceBet> => {
+  let mintHash = '';
+  let betHash = '';
   try {
-    const tx = await token.mint(
+    const mintTx = await token.mint(
       userAddress,
       ethers.utils.parseEther(wager + ''),
     );
-    await tx.wait();
-    await escrow.bet(
+    const mintTxRes = await mintTx.wait();
+    mintHash = mintTxRes.transactionHash;
+    console.log('mintHash', mintHash);
+    const betTx = await escrow.bet(
       userAddress,
       channelId,
       ethers.utils.parseEther(wager + ''),
     );
+    const betTxRes = await betTx.wait();
+    betHash = betTxRes.transactionHash;
+    console.log('betHash', betHash);
   } catch (err) {
-    console.log('placebetError2--------', err);
+    console.error('placebetError', err);
   }
+
+  return { mintHash, betHash };
 };
 
 export const endBet = async (
   id: number,
   winners: string[],
   amounts: string[],
-) => {
-  console.log('id', id);
-  console.log('winners', winners);
-  console.log('amounts', amounts);
-
+): Promise<string> => {
+  let endBethash = '';
   try {
-    const tx = await escrow.endBet(id, winners);
-    await tx.wait();
+    const endBetTx = await escrow.endBet(id, winners);
+    const endBetTxRes = await endBetTx.wait();
+    endBethash = endBetTxRes.transactionHash;
+    console.log('endBethash', endBethash);
     await escrow.disperseCreditToken(id, amounts);
   } catch (err) {
-    console.log('endBetError2--------', err);
+    console.error('endBetError', err);
   }
+  return endBethash;
 };
 
-export const redeem = async (user: string, amount: number) => {
+export const redeem = async (user: string, amount: number): Promise<string> => {
+  let redeemHash = '';
   try {
-    await escrow.redeem(user, amount);
-  } catch (err) {}
+    const tx = await escrow.redeem(user, amount);
+    const txRes = await tx.wait();
+    redeemHash = txRes.transactionHash;
+    console.log('redeemHash', redeemHash);
+  } catch (err) {
+    console.error('redeem error', err);
+  }
+  return redeemHash;
 };
 
-export const setTokenAddress = async (token: string) => {
+export const setTokenAddress = async (token: string): Promise<string> => {
+  let setTokenHash = '';
   try {
-    await escrow.setCreditToken(token);
-  } catch (err) {}
+    const tx = await escrow.setCreditToken(token);
+    const txRes = await tx.wait();
+    setTokenHash = txRes.transactionHash;
+    console.log('setTokenHash', setTokenHash);
+  } catch (err) {
+    console.error('setTokenAddress error', err);
+  }
+  return setTokenHash;
 };

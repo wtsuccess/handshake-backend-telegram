@@ -23,13 +23,11 @@ export class BetChannelController {
   @Get()
   async findAll() {
     const betChannels = await this.betChannelService.findAll();
-    console.log(betChannels);
     return betChannels;
   }
 
   @Get(':id')
   findOne(@Param('id') id: number) {
-    console.log(id);
     return this.betChannelService.findOne(id);
   }
 

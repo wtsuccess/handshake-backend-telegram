@@ -1,6 +1,6 @@
 import {
   Column,
-  CreateDateColumn,
+  // CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -25,6 +25,9 @@ export class Bet {
   @Column({ type: 'int' })
   wager: number;
 
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  @Column({ type: 'boolean' })
+  option: boolean;
+
+  // @CreateDateColumn({ name: 'created_at' })
+  // createdAt: Date;
 }
