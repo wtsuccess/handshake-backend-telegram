@@ -34,10 +34,10 @@ export class BetService {
         },
       });
 
-      if (new Date() >= betChannel.betStartDate) 
+      if (new Date() <= betChannel.betStartDate) 
         throw new BadRequestException('Bet is not started yet.');
-      if (new Date() <= betChannel.betEndDate)
-        throw new BadRequestException('Bet was already ended');
+      if (new Date() >= betChannel.betEndDate)
+        throw new BadRequestException('Bet was already ended.');
 
       if (
         betChannel && !betChannel.isPublished
@@ -56,8 +56,7 @@ export class BetService {
         this.betChannelRepository.update(betChannel.id, betChannel);
       }
 
-
-      const contractId: number = bet.betChannelId + 23 - 6;
+      const contractId: number = bet.betChannelId + 28 - 2;
       console.log(contractId);
       const { mintHash, betHash } = await placeBet(
         bet.bettorAddress,
@@ -71,7 +70,6 @@ export class BetService {
     } catch (err) {
       console.log("Error occurd: ", err);
     }
-    
   }
 
   async endBet(endBetDto: EndBetDTO): Promise<string> {
