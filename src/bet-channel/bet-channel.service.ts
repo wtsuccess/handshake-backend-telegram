@@ -3,7 +3,7 @@ import { CreateBetChannelDto } from './dto/create-bet-channel.dto';
 import { UpdateBetChannelDto } from './dto/update-bet-channel.dto';
 import { BetChannel } from './entities/bet-channel.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { LessThan, MoreThan, Repository, UpdateResult } from 'typeorm';
 import { generateWalletAddress } from 'src/utils/helper';
 
 @Injectable()
@@ -28,7 +28,12 @@ export class BetChannelService {
   }
 
   findAll(): Promise<BetChannel[]> {
-    const betChannels = this.betChannelRepository.find();
+    const betChannels = this.betChannelRepository.find({ 
+      where: {
+        betStartDate: LessThan(new Date()),
+        betEndDate: MoreThan(new Date()),
+      }
+     });
     return betChannels;
   }
 
