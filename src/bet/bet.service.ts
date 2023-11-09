@@ -67,8 +67,9 @@ export class BetService {
 
       if (mintHash === '' || betHash === '')
         throw new BadRequestException('Bet Failed');
-      this.betRepository.save(bet);
       betChannel.isActive = !betChannel.isActive;
+      this.betRepository.save(bet);
+      this.betChannelRepository.update(betChannel.id, betChannel);
       return { createChannelHash, mintHash, betHash };
     } catch (err) {
       console.log("Error occurd: ", err);
