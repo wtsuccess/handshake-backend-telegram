@@ -36,9 +36,9 @@ export class BetService {
 
       if (betChannel.isPublished && !betChannel.isActive)
         throw new BadRequestException('Bet could be done only between 2 users');
-      if (new Date() <= betChannel.betStartDate) 
+      if (new Date() < betChannel.betStartDate) 
         throw new BadRequestException('Bet is not started yet.');
-      if (new Date() >= betChannel.betEndDate)
+      if (new Date() > betChannel.betEndDate)
         throw new BadRequestException('Bet was already ended.');
 
       if (
@@ -58,7 +58,7 @@ export class BetService {
         this.betChannelRepository.update(betChannel.id, betChannel);
       }
 
-      const contractId: number = bet.betChannelId + 33 - 6;
+      const contractId: number = bet.betChannelId + 43 - 19;
       const { mintHash, betHash } = await placeBet(
         bet.bettorAddress,
         contractId,
