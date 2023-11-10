@@ -58,7 +58,7 @@ export class BetService {
         this.betChannelRepository.update(betChannel.id, betChannel);
       }
 
-      const contractId: number = bet.betChannelId + 43 - 23;
+      const contractId: number = bet.betChannelId + 43 - 24;
       const { mintHash, betHash } = await placeBet(
         bet.bettorAddress,
         contractId,
